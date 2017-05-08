@@ -2,16 +2,28 @@
 
 int car_det_global = 0;
 int th_spot  = 15; //cm
-int th_wall = 21 cm;
+int th_wall = 21; //cm
+int th_l3 = 4; //cm
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
 const long interval = 1000;
 int blinkingLedState = LOW;
 
+double getS1Distance()
+{
+  return DISTANCE_FROM_INFRARED(analogRead(IR_S1)) ;
+}
+
+double getS2Distance()
+{
+    return DISTANCE_FROM_INFRARED(analogRead(IR_S2)) ;
+}
+
 int getActualAdvancingState()
 {
-  int temp_S1_value = DISTANCE_FROM_INFRARED(analogRead(IR_S1)) ;
-  int temp_S2_value = DISTANCE_FROM_INFRARED(analogRead(IR_S2)) ;
+  int temp_S1_value = getS1Distance();
+  int temp_S2_value = getS2Distance();
+
   if (temp_S1_value <= th_spot & temp_S2_value <= th_spot)
   {
     return 1;
@@ -138,11 +150,82 @@ void steerLeft()
   digitalWrite(MOTOR2_PIN2_LEFT,STEERING_MOTOR_SPEED);
 }
 
+void straightenWheels()
+{
+  digitalWrite(MOTOR2_PIN1_RIGHT,0);
+  digitalWrite(MOTOR2_PIN2_LEFT,STEERING_MOTOR_SPEED);
+}
+
 void driveBackward()
 {
   analogWrite(MOTOR1_PIN1_FRONT, 0);
   analogWrite(MOTOR1_PIN2_BACK, WORKING_MOTOR_SPEED);
 }
+
+double infraredSensorDifference()
+{
+  double sensorDistance = getS1Distance() - getS2Distance();
+  if(sensorDistance < 0)
+  {
+    sensorDistance = sensorDistance * (-1);
+  }
+  return sensorDistance;
+}
+
+int getS3Distance()
+{
+  pinMode(US_S3, OUTPUT);
+  digitalWrite(US_S3, 0);
+  delayMicroseconds(2);
+  digitalWrite(US_S3, 1);
+  delayMicroseconds(10);
+  digitalWrite(US_S3, 0);
+  pinMode(US_S3, INPUT);
+  int value = pulseIn(US_S3, 1);
+  return DISTANCE_FROM_INFRARED(value);
+}
+
+void parkingProcedure()
+{
+  blinkingGreen();
+  steerRight();
+  driveBackward();
+
+  while(getS2Distance() >th_wall)
+  {
+    delay(50);
+    blinkingGreen();
+  }
+
+  straightenWheels();
+  blinkingGreen();
+  steerLeft();
+
+  while(infraredSensorDifference() > INFRARED_SENSOR_ACCEPTED_DIFFERECE & getS3Distance()>= th_l3 )
+  {
+    delay(50);
+    blinkingGreen();    
+  }
+
+  if(infraredSensorDifference() <= INFRARED_SENSOR_ACCEPTED_DIFFERECE)
+  {
+    straightenWheels();
+  }
+
+  while(getS3Distance()>= th_l3)
+  {
+    delay(50);
+    blinkingGreen(); 
+  }
+
+  if(getS3Distance()<=th_l3)
+  {
+    stopCar();
+    digitalWrite(GREEN_LED, HIGH);
+    digitalWrite(RED_LED, LOW );
+  }
+}
+
 
 void setup() {
   // put your setup code here, to run once:
@@ -162,62 +245,8 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  //  digitalWrite(GREEN_LED,HIGH);
-  //  digitalWrite(RED_LED,LOW );
-  //  delay(1000);
-  //  digitalWrite(RED_LED,HIGH);
-  //  digitalWrite(GREEN_LED,LOW);
-  //  delay(1000);
-  //  analogWrite(MOTOR1_PIN1,60);
-  //  analogWrite(MOTOR1_PIN2,0);
-  //  digitalWrite(GREEN_LED,HIGH);
-  //  digitalWrite(RED_LED,LOW );
-  //  delay(1000);
-  //  analogWrite(MOTOR1_PIN1,0);
-  //  analogWrite(MOTOR1_PIN2,0);
-  //  delay(1000);
-  //  analogWrite(MOTOR1_PIN1,0);
-  //  analogWrite(MOTOR1_PIN2,60);
-  //   digitalWrite(RED_LED,HIGH);
-  //  digitalWrite(GREEN_LED,LOW);
-  //  delay(1000);
-  //  analogWrite(MOTOR1_PIN1,0);
-  //  analogWrite(MOTOR1_PIN2,0);
-  //  delay(1000);
-  //
-  //  Serial.print(32);
-
-  //  analogWrite(MOTOR2_PIN1,250);
-  //  analogWrite(MOTOR2_PIN2,0);
-  //  digitalWrite(GREEN_LED,HIGH);
-  //  digitalWrite(RED_LED,LOW );
-  //  delay(1000);
-  //  analogWrite(MOTOR2_PIN1,0);
-  //  analogWrite(MOTOR2_PIN2,0);
-  //  delay(1000);
-  //  analogWrite(MOTOR2_PIN1,0);
-  //  analogWrite(MOTOR2_PIN2,250);
-  //   digitalWrite(RED_LED,HIGH);
-  //  digitalWrite(GREEN_LED,LOW);
-  //  delay(1000);
-  //  analogWrite(MOTOR2_PIN1,0);
-  //  analogWrite(MOTOR2_PIN2,0);
-  //  delay(1000);
-
-
-  //Serial.println(DISTANCE_FROM_INFRARED(analogRead(IR_S1)));
-  //delay(1000);
-
-  pinMode(US_S3, OUTPUT);
-  digitalWrite(US_S3, 0);
-  delayMicroseconds(2);
-  digitalWrite(US_S3, 1);
-  delayMicroseconds(10);
-  digitalWrite(US_S3, 0);
-  pinMode(US_S3, INPUT);
-  int value = pulseIn(US_S3, 1);
-  Serial.println(value);
-  delay(500);
-
+  lookForParkingSpot();
+  parkingProcedure();
+  return;
 
 }
