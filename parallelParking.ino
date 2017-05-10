@@ -1,7 +1,7 @@
 #include "header.h"
 
 int car_det_global = 0;
-int th_spot  = 15; //cm
+int th_spot  = 10; //cm
 int th_wall = 21; //cm
 int th_l3 = 4; //cm
 
@@ -24,23 +24,34 @@ int getActualAdvancingState()
   int temp_S1_value = getS1Distance();
   int temp_S2_value = getS2Distance();
 
-  if (temp_S1_value <= th_spot & temp_S2_value <= th_spot)
+  if (temp_S1_value < th_spot && temp_S2_value < th_spot)
   {
     return 1;
   }
-  if (temp_S1_value <= th_spot & temp_S2_value >= th_spot)
+  if (temp_S1_value < th_spot && temp_S2_value >= th_spot)
   {
     return 2;
   }
-  if (temp_S1_value >= th_spot & temp_S2_value <= th_spot)
+  if (temp_S1_value >= th_spot && temp_S2_value < th_spot)
   {
     return 3;
   }
-  if (temp_S1_value >= th_spot & temp_S2_value >= th_spot)
+  if (temp_S1_value >= th_spot && temp_S2_value >= th_spot)
   {
     return 4;
   }
 
+}
+
+void printState()
+{
+  Serial.print(getS1Distance());
+  Serial.print("   ");
+  Serial.print(getS2Distance());
+  Serial.print("   ");
+  Serial.print(getActualAdvancingState());
+  Serial.println();
+  delay(100);
 }
 
 void driveForward()
@@ -68,6 +79,7 @@ void lookForParkingSpot()
   int newState;
 
   lookForParkingSpotInitialization();
+  Serial.println(initialState);
 
   while (car_det_global < MAX_DETECTED_CARS)
   {
@@ -80,8 +92,13 @@ void lookForParkingSpot()
           //wait for state4
           while ((newState = getActualAdvancingState()) != 4)
           {
+//            Serial.print(getS1Distance());
+//            Serial.print("   ");
+//            Serial.print(getS2Distance());
+//            Serial.println();
             delay(5);
           }
+          Serial.println(newState);
           initialState = newState;
         }
         break;
@@ -89,8 +106,13 @@ void lookForParkingSpot()
         //wait for state1
         while ((newState = getActualAdvancingState()) != 1)
         {
+//          Serial.print(getS1Distance());
+//            Serial.print("   ");
+//            Serial.print(getS2Distance());
+//            Serial.println();
           delay(5);
         }
+        Serial.println(newState);
         initialState = newState;
         break;
       case 3:
@@ -98,8 +120,13 @@ void lookForParkingSpot()
         //wait for state4
         while ((newState = getActualAdvancingState()) != 4)
         {
+//          Serial.print(getS1Distance());
+//            Serial.print("   ");
+//            Serial.print(getS2Distance());
+//            Serial.println();
           delay(5);
         }
+        Serial.println(newState);
         initialState = newState;
         break;
       case 4:
@@ -107,8 +134,13 @@ void lookForParkingSpot()
         //wait for state2
         while ((newState = getActualAdvancingState()) != 2)
         {
+//          Serial.print(getS1Distance());
+//            Serial.print("   ");
+//            Serial.print(getS2Distance());
+//            Serial.println();
           delay(5);
         }
+        Serial.println(newState);
         initialState = newState;
         break;
 
@@ -153,7 +185,7 @@ void steerLeft()
 void straightenWheels()
 {
   digitalWrite(MOTOR2_PIN1_RIGHT,0);
-  digitalWrite(MOTOR2_PIN2_LEFT,STEERING_MOTOR_SPEED);
+  digitalWrite(MOTOR2_PIN2_LEFT,0);
 }
 
 void driveBackward()
@@ -189,6 +221,7 @@ void parkingProcedure()
 {
   blinkingGreen();
   steerRight();
+  delay(5000);
   driveBackward();
 
   while(getS2Distance() >th_wall)
@@ -243,10 +276,13 @@ void setup() {
 
 }
 
+
 void loop() {
   // put your main code here, to run repeatedly:
+
+  //straightenWheels();
   lookForParkingSpot();
   parkingProcedure();
-  return;
-
+  //printState();
+  //steerRight();
 }
