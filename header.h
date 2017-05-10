@@ -1,3 +1,6 @@
+#ifndef HEADER_H
+#define HEADER_H
+
 # define RED_LED 10
 # define GREEN_LED 11
 # define MOTOR1_PIN1_FRONT 3
@@ -15,3 +18,5 @@
 # define WORKING_MOTOR_SPEED 90 //90 e ok
 # define STEERING_MOTOR_SPEED 250
 # define INFRARED_SENSOR_ACCEPTED_DIFFERECE 2
+
+#endif

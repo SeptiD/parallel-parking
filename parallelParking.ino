@@ -1,4 +1,10 @@
 #include "header.h"
+extern "C"{
+#include "carMoves.h"
+}
+extern "C"{
+#include "sensors.h"
+}
 
 int car_det_global = 0;
 int th_spot  = 10; //cm
@@ -9,16 +15,19 @@ unsigned long previousMillis = 0;        // will store last time LED was updated
 const long interval = 1000;
 int blinkingLedState = LOW;
 
-double getS1Distance()
-{
-  return DISTANCE_FROM_INFRARED(analogRead(IR_S1)) ;
-}
 
-double getS2Distance()
+int getS3Distance()
 {
-    return DISTANCE_FROM_INFRARED(analogRead(IR_S2)) ;
+  pinMode(US_S3, OUTPUT);
+  digitalWrite(US_S3, 0);
+  delayMicroseconds(2);
+  digitalWrite(US_S3, 1);
+  delayMicroseconds(10);
+  digitalWrite(US_S3, 0);
+  pinMode(US_S3, INPUT);
+  int value = pulseIn(US_S3, 1);
+  return DISTANCE_FROM_INFRARED(value);
 }
-
 int getActualAdvancingState()
 {
   int temp_S1_value = getS1Distance();
@@ -54,24 +63,17 @@ void printState()
   delay(100);
 }
 
-void driveForward()
-{
-  analogWrite(MOTOR1_PIN1_FRONT, WORKING_MOTOR_SPEED);
-  analogWrite(MOTOR1_PIN2_BACK, 0);
-}
+
 
 void lookForParkingSpotInitialization()
 {
+  straightenWheels();
   digitalWrite(GREEN_LED, LOW);
   digitalWrite(RED_LED, HIGH );
   driveForward();
 }
 
-void stopCar()
-{
-  analogWrite(MOTOR1_PIN1_FRONT, 0);
-  analogWrite(MOTOR1_PIN2_BACK, 0);
-}
+
 
 void lookForParkingSpot()
 {
@@ -92,10 +94,6 @@ void lookForParkingSpot()
           //wait for state4
           while ((newState = getActualAdvancingState()) != 4)
           {
-//            Serial.print(getS1Distance());
-//            Serial.print("   ");
-//            Serial.print(getS2Distance());
-//            Serial.println();
             delay(5);
           }
           Serial.println(newState);
@@ -106,10 +104,6 @@ void lookForParkingSpot()
         //wait for state1
         while ((newState = getActualAdvancingState()) != 1)
         {
-//          Serial.print(getS1Distance());
-//            Serial.print("   ");
-//            Serial.print(getS2Distance());
-//            Serial.println();
           delay(5);
         }
         Serial.println(newState);
@@ -120,10 +114,6 @@ void lookForParkingSpot()
         //wait for state4
         while ((newState = getActualAdvancingState()) != 4)
         {
-//          Serial.print(getS1Distance());
-//            Serial.print("   ");
-//            Serial.print(getS2Distance());
-//            Serial.println();
           delay(5);
         }
         Serial.println(newState);
@@ -134,10 +124,6 @@ void lookForParkingSpot()
         //wait for state2
         while ((newState = getActualAdvancingState()) != 2)
         {
-//          Serial.print(getS1Distance());
-//            Serial.print("   ");
-//            Serial.print(getS2Distance());
-//            Serial.println();
           delay(5);
         }
         Serial.println(newState);
@@ -168,53 +154,6 @@ void blinkingGreen()
     }
   }
   digitalWrite(GREEN_LED, blinkingLedState);
-}
-
-void steerRight()
-{
-  digitalWrite(MOTOR2_PIN1_RIGHT,STEERING_MOTOR_SPEED);
-  digitalWrite(MOTOR2_PIN2_LEFT,0);
-}
-
-void steerLeft()
-{
-  digitalWrite(MOTOR2_PIN1_RIGHT,0);
-  digitalWrite(MOTOR2_PIN2_LEFT,STEERING_MOTOR_SPEED);
-}
-
-void straightenWheels()
-{
-  digitalWrite(MOTOR2_PIN1_RIGHT,0);
-  digitalWrite(MOTOR2_PIN2_LEFT,0);
-}
-
-void driveBackward()
-{
-  analogWrite(MOTOR1_PIN1_FRONT, 0);
-  analogWrite(MOTOR1_PIN2_BACK, WORKING_MOTOR_SPEED);
-}
-
-double infraredSensorDifference()
-{
-  double sensorDistance = getS1Distance() - getS2Distance();
-  if(sensorDistance < 0)
-  {
-    sensorDistance = sensorDistance * (-1);
-  }
-  return sensorDistance;
-}
-
-int getS3Distance()
-{
-  pinMode(US_S3, OUTPUT);
-  digitalWrite(US_S3, 0);
-  delayMicroseconds(2);
-  digitalWrite(US_S3, 1);
-  delayMicroseconds(10);
-  digitalWrite(US_S3, 0);
-  pinMode(US_S3, INPUT);
-  int value = pulseIn(US_S3, 1);
-  return DISTANCE_FROM_INFRARED(value);
 }
 
 void parkingProcedure()
@@ -280,7 +219,6 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  //straightenWheels();
   lookForParkingSpot();
   parkingProcedure();
   //printState();
