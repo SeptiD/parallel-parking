@@ -28,6 +28,21 @@ int getS3Distance()
   int value = pulseIn(US_S3, 1);
   return DISTANCE_FROM_INFRARED(value);
 }
+
+
+void printState()
+{
+  Serial.print(getS1Distance());
+  Serial.print("   ");
+  Serial.print(getS2Distance());
+  Serial.print("   ");
+  Serial.print(getActualAdvancingState());
+  Serial.println();
+  delay(100);
+}
+
+
+
 int getActualAdvancingState()
 {
   int temp_S1_value = getS1Distance();
@@ -51,19 +66,6 @@ int getActualAdvancingState()
   }
 
 }
-
-void printState()
-{
-  Serial.print(getS1Distance());
-  Serial.print("   ");
-  Serial.print(getS2Distance());
-  Serial.print("   ");
-  Serial.print(getActualAdvancingState());
-  Serial.println();
-  delay(100);
-}
-
-
 
 void lookForParkingSpotInitialization()
 {
@@ -159,8 +161,15 @@ void blinkingGreen()
 void parkingProcedure()
 {
   blinkingGreen();
+  int counter;
+  for(counter=0;counter<5;counter++)
+  {
+    delay(5000);
+    blinkingGreen();
+  }
   steerRight();
-  delay(5000);
+  delay(1000);
+  blinkingGreen();
   driveBackward();
 
   while(getS2Distance() >th_wall)
@@ -169,6 +178,8 @@ void parkingProcedure()
     blinkingGreen();
   }
 
+  delay(1000);
+  blinkingGreen();
   straightenWheels();
   blinkingGreen();
   steerLeft();
