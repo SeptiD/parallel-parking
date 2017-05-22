@@ -8,12 +8,13 @@ extern "C" {
 
 int car_det_global = 0;
 int th_spot  = 10; //cm
-int th_wall = 18; //cm
+int th_wall = 6; //cm
 int th_l3 = 7; //cm
 int snap = 160;
+int th_S145angle = 16;
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
-const long interval = 500;
+const long interval = 250;
 int blinkingLedState = LOW;
 
 
@@ -171,63 +172,93 @@ void blinkingGreen()
   digitalWrite(GREEN_LED, blinkingLedState);
 }
 
-void parkingProcedure()
+
+
+void parkingStep1()
 {
-  blinkingGreen();
+  //initial blinking
+   blinkingGreen();
   int counter;
   for (counter = 0; counter < 5; counter++)
   {
-    delay(500);
+    delay(250);
     blinkingGreen();
   }
-  steerRight();
-  delay(500);
-  blinkingGreen();
+  bounceToStop();
+
+  
+}
+
+void parkingStep2()
+{
   driveBackward();
-  delay(2000);
-  while (getS2Distance() > th_wall)
+  while (getS1Distance() < th_S145angle)
   {
     delay(10);
     blinkingGreen();
   }
+  bounceToStop();
+}
 
+void parkingStep3()
+{
   blinkingGreen();
-  driveForward();
-  delay(5);
-  stopCar();
-  //straightenWheels();
-  //blinkingGreen();
-  steerLeft();
-  driveBackwardSpeed(snap);
+  straightenWheels();
+  delay(50);
+  driveBackward();
+}
+void parkingStep4()
+{
+  while(getS2Distance()>th_wall)
+  {
+    delay(10);
     blinkingGreen();
+  }
+  bounceToStop();
+}
+
+void parkingStep5()
+{
+  steerLeft();
+  driveBackward();
   while (infraredSensorDifference() > INFRARED_SENSOR_ACCEPTED_DIFFERECE && getS3Distance() >= th_l3 )
   {
-    driveBackwardSpeed(snap);
-    delay(5);
-    if(snap>=80)
-    {
-      snap = snap-10;
-    }
+    delay(10);
     blinkingGreen();
   }
+  bounceToStop();
+}
 
-  if (infraredSensorDifference() <= INFRARED_SENSOR_ACCEPTED_DIFFERECE)
-  {
-    straightenWheels();
-  }
-
-  while (getS3Distance() >= th_l3)
-  {
-    delay(50);
-    blinkingGreen();
-  }
-
+void parkingStep6()
+{
   if (getS3Distance() <= th_l3)
   {
-    stopCar();
     digitalWrite(GREEN_LED, HIGH);
     digitalWrite(RED_LED, LOW );
   }
+  else
+  {
+    //there is still space to drive backwards
+    straightenWheels();
+    while (getS3Distance() >= th_l3)
+    {
+      driveBackward();
+      delay(50);
+      blinkingGreen();
+    }
+    bounceToStop();
+    digitalWrite(GREEN_LED, HIGH);
+    digitalWrite(RED_LED, LOW );
+  }
+}
+void parkingProcedure()
+{
+  parkingStep1();
+  parkingStep2();
+  parkingStep3();
+  parkingStep4();
+  parkingStep5();
+  parkingStep6();
 }
 
 

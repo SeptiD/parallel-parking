@@ -42,3 +42,11 @@ void straightenWheels()
   digitalWrite(MOTOR2_PIN1_RIGHT,0);
   digitalWrite(MOTOR2_PIN2_LEFT,0);
 }
+
+void bounceToStop()
+{
+  driveForward();
+  delay(5);
+  stopCar();
+}
+

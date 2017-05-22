@@ -12,4 +12,9 @@ void steerRight();
 void steerLeft();
 void straightenWheels();
 
+void bounceToStop();
+
+
+
+
 #endif
