@@ -5,6 +5,7 @@
 
 void driveForward();
 void driveBackward();
+void driveBackwardSpeed(int speed);
 void stopCar();
 
 void steerRight();

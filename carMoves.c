@@ -13,6 +13,12 @@ void driveBackward()
   analogWrite(MOTOR1_PIN2_BACK, WORKING_MOTOR_SPEED);
 }
 
+void driveBackwardSpeed(int speed)
+{
+  analogWrite(MOTOR1_PIN1_FRONT, 0);
+  analogWrite(MOTOR1_PIN2_BACK, speed);
+}
+
 void stopCar()
 {
   analogWrite(MOTOR1_PIN1_FRONT, 0);

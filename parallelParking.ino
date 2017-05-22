@@ -1,18 +1,19 @@
 #include "header.h"
-extern "C"{
+extern "C" {
 #include "carMoves.h"
 }
-extern "C"{
+extern "C" {
 #include "sensors.h"
 }
 
 int car_det_global = 0;
 int th_spot  = 10; //cm
-int th_wall = 21; //cm
-int th_l3 = 4; //cm
+int th_wall = 18; //cm
+int th_l3 = 7; //cm
+int snap = 160;
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
-const long interval = 1000;
+const long interval = 500;
 int blinkingLedState = LOW;
 
 
@@ -26,7 +27,7 @@ int getS3Distance()
   digitalWrite(US_S3, 0);
   pinMode(US_S3, INPUT);
   int value = pulseIn(US_S3, 1);
-  return DISTANCE_FROM_INFRARED(value);
+  return DISTANCE_FROM_ULTRASOUND(value);
 }
 
 
@@ -37,6 +38,18 @@ void printState()
   Serial.print(getS2Distance());
   Serial.print("   ");
   Serial.print(getActualAdvancingState());
+  Serial.println();
+  delay(100);
+}
+
+void printSensors()
+{
+  Serial.print(getS1Distance());
+  Serial.print("  ");
+  Serial.print(getS2Distance());
+  Serial.print("  ");
+  Serial.print(getS3Distance());
+  Serial.print("  ");
   Serial.println();
   delay(100);
 }
@@ -140,7 +153,7 @@ void lookForParkingSpot()
 
 void blinkingGreen()
 {
-  digitalWrite(RED_LED,LOW);
+  digitalWrite(RED_LED, LOW);
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval)
   {
@@ -162,46 +175,54 @@ void parkingProcedure()
 {
   blinkingGreen();
   int counter;
-  for(counter=0;counter<5;counter++)
+  for (counter = 0; counter < 5; counter++)
   {
-    delay(5000);
+    delay(500);
     blinkingGreen();
   }
   steerRight();
-  delay(1000);
+  delay(500);
   blinkingGreen();
   driveBackward();
-
-  while(getS2Distance() >th_wall)
+  delay(2000);
+  while (getS2Distance() > th_wall)
   {
-    delay(50);
+    delay(10);
     blinkingGreen();
   }
 
-  delay(1000);
   blinkingGreen();
-  straightenWheels();
-  blinkingGreen();
+  driveForward();
+  delay(5);
+  stopCar();
+  //straightenWheels();
+  //blinkingGreen();
   steerLeft();
-
-  while(infraredSensorDifference() > INFRARED_SENSOR_ACCEPTED_DIFFERECE & getS3Distance()>= th_l3 )
+  driveBackwardSpeed(snap);
+    blinkingGreen();
+  while (infraredSensorDifference() > INFRARED_SENSOR_ACCEPTED_DIFFERECE && getS3Distance() >= th_l3 )
   {
-    delay(50);
-    blinkingGreen();    
+    driveBackwardSpeed(snap);
+    delay(5);
+    if(snap>=80)
+    {
+      snap = snap-10;
+    }
+    blinkingGreen();
   }
 
-  if(infraredSensorDifference() <= INFRARED_SENSOR_ACCEPTED_DIFFERECE)
+  if (infraredSensorDifference() <= INFRARED_SENSOR_ACCEPTED_DIFFERECE)
   {
     straightenWheels();
   }
 
-  while(getS3Distance()>= th_l3)
+  while (getS3Distance() >= th_l3)
   {
     delay(50);
-    blinkingGreen(); 
+    blinkingGreen();
   }
 
-  if(getS3Distance()<=th_l3)
+  if (getS3Distance() <= th_l3)
   {
     stopCar();
     digitalWrite(GREEN_LED, HIGH);
@@ -232,6 +253,14 @@ void loop() {
 
   lookForParkingSpot();
   parkingProcedure();
+  while(1)
+  {
+    //do nothing
+  }
+  //driveForward();
   //printState();
-  //steerRight();
+ // steerRight();
+  //straightenWheels();
+   //steerLeft();
+   // printSensors();
 }
