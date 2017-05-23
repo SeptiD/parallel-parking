@@ -11,7 +11,7 @@ int th_spot  = 10; //cm
 int th_wall = 6; //cm
 int th_l3 = 7; //cm
 int snap = 160;
-int th_S145angle = 16;
+int th_S145angle = 16;//cm
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
 const long interval = 250;
@@ -149,7 +149,7 @@ void lookForParkingSpot()
     }
   }
 
-  stopCar();
+  bounceBackToStop();
 }
 
 void blinkingGreen()
@@ -184,7 +184,8 @@ void parkingStep1()
     delay(250);
     blinkingGreen();
   }
-  bounceToStop();
+  steerRight();
+  //bounceToStop();
 
   
 }
@@ -209,7 +210,7 @@ void parkingStep3()
 }
 void parkingStep4()
 {
-  while(getS2Distance()>th_wall)
+  while(getS1Distance()>th_wall && getS2Distance()>th_wall)
   {
     delay(10);
     blinkingGreen();
@@ -231,6 +232,7 @@ void parkingStep5()
 
 void parkingStep6()
 {
+  straightenWheels();
   if (getS3Distance() <= th_l3)
   {
     digitalWrite(GREEN_LED, HIGH);
@@ -239,7 +241,7 @@ void parkingStep6()
   else
   {
     //there is still space to drive backwards
-    straightenWheels();
+    
     while (getS3Distance() >= th_l3)
     {
       driveBackward();

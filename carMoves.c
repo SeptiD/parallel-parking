@@ -49,4 +49,10 @@ void bounceToStop()
   delay(5);
   stopCar();
 }
+void bounceBackToStop()
+{
+  driveBackward();
+  delay(5);
+  stopCar();
+}
 
