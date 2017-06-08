@@ -46,13 +46,13 @@ void straightenWheels()
 void bounceToStop()
 {
   driveForward();
-  delay(5);
+  delay(10);
   stopCar();
 }
 void bounceBackToStop()
 {
   driveBackward();
-  delay(5);
+  delay(10);
   stopCar();
 }
 

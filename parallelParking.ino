@@ -8,10 +8,10 @@ extern "C" {
 
 int car_det_global = 0;
 int th_spot  = 10; //cm
-int th_wall = 6; //cm
-int th_l3 = 7; //cm
+int th_wall = 13; //cm
+int th_l3 = 5; //cm
 int snap = 160;
-int th_S145angle = 16;//cm
+int th_S145angle = 12;//cm
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
 const long interval = 250;
@@ -52,7 +52,7 @@ void printSensors()
   Serial.print(getS3Distance());
   Serial.print("  ");
   Serial.println();
-  delay(100);
+
 }
 
 
@@ -210,7 +210,7 @@ void parkingStep3()
 }
 void parkingStep4()
 {
-  while(getS1Distance()>th_wall && getS2Distance()>th_wall)
+  while(getS2Distance()>th_wall)
   {
     delay(10);
     blinkingGreen();
@@ -222,12 +222,16 @@ void parkingStep5()
 {
   steerLeft();
   driveBackward();
-  while (infraredSensorDifference() > INFRARED_SENSOR_ACCEPTED_DIFFERECE && getS3Distance() >= th_l3 )
+  Serial.println(infraredSensorDifference());
+  //while (infraredSensorDifference() > INFRARED_SENSOR_ACCEPTED_DIFFERECE /*&& getS3Distance() >= th_l3*/ )
+  delay(1000);
+  while((getS1Distance()-getS2Distance())>1&&(getS2Distance()<=10))
   {
     delay(10);
     blinkingGreen();
   }
   bounceToStop();
+  printSensors();
 }
 
 void parkingStep6()
@@ -242,7 +246,7 @@ void parkingStep6()
   {
     //there is still space to drive backwards
     
-    while (getS3Distance() >= th_l3)
+    while(getS3Distance() >= th_l3)
     {
       driveBackward();
       delay(50);
@@ -252,6 +256,7 @@ void parkingStep6()
     digitalWrite(GREEN_LED, HIGH);
     digitalWrite(RED_LED, LOW );
   }
+  printSensors();
 }
 void parkingProcedure()
 {
@@ -283,13 +288,16 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-
+//
   lookForParkingSpot();
   parkingProcedure();
   while(1)
   {
     //do nothing
   }
+
+//printSensors();
+
   //driveForward();
   //printState();
  // steerRight();
